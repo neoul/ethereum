@@ -16,6 +16,9 @@ remix 확장팩은 solidity를 remix의 remote compiler를 사용해 컴파일�
 }
 ```
 
+만약, ethereum-remix 확장팩의 window에서 compile을 실행할 경우에는
+`Set compiler version`을 타겟 버전에 맞게 변경하고, `Compiler Compile contracts`를 클릭해 컴파일한다.
+
 
 # Running a Ethereum private network with geth with remix web IDE
 
