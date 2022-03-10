@@ -1,3 +1,21 @@
+# Solidity with vscode
+
+vscode에서 remix로 solidity 코드를 컴파일하기
+
+준비물: vscode, etheriem-remix vscode extension
+
+1. vscode 설치
+2. etheriem-remix 확장팩 설치; https://marketplace.visualstudio.com/items?itemName=RemixProject.ethereum-remix
+
+remix 확장팩은 solidity를 remix의 remote compiler를 사용해 컴파일한다. 컴파일시에 최신 버전의 compiler를 사용한다면 `F5`나 `실행> solidity: Compile Contract`로 컴파일 할 수 있으나, 낮은 버전의 solidity를 컴파일한다면, `solidity.compileUsingRemoteVersion`을 버전에 아래와 같이 변경하거나, `실행> solidity: Change workspace compiler version`로 변경해야 한다.
+
+```json
+{
+    "solidity.compileUsingRemoteVersion": "v0.4.26+commit.4563c3fc"
+}
+```
+
+
 # Running a Ethereum private network with geth with remix web IDE
 
 geth를 통해 private network을 하나 생성하고, 최신 버전의 geth와 remix IDE 연동 방법을 확인/정리해 보았다.
