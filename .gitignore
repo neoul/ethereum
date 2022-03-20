@@ -1,3 +1,15 @@
 data
 bin
 solidity/artifacts
+solidity/output
+solidity/TEMP
+node_modules
+package-lock.json
+package.json
+go/account.balance
+go/accounts/accounts
+go/.wallets
+go/transactions/transactions
+go/transactions/main
+myprivate
+go

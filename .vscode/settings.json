@@ -1,3 +1,11 @@
 {
-    "solidity.compileUsingRemoteVersion": "v0.5.17+commit.d19bba13"
+    "solidity.compileUsingRemoteVersion": "v0.8.0+commit.c7dfd78e",
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/*/**": true
+      },
+      "solidity.defaultCompiler": "remote",
+      "solidity.packageDefaultDependenciesContractsDirectory": "",
+      "solidity.packageDefaultDependenciesDirectory": "node_modules"
 }

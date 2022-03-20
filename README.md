@@ -1,23 +1,34 @@
 # Solidity with vscode
 
-vscode에서 remix로 solidity 코드를 컴파일하기
+기본 설정
 
-준비물: vscode, etheriem-remix vscode extension
+- vscode
+- vscode extension: etheriem remix (ext install RemixProject.ethereum-remix)
+- vscode extension: solidity (ext install JuanBlanco.solidity)
+- vscode extension: solidity virtual developer
 
-1. vscode 설치
-2. etheriem-remix 확장팩 설치; https://marketplace.visualstudio.com/items?itemName=RemixProject.ethereum-remix
-3. Command Palette> `solidity: Change workspace compiler version (remote)`> target compiler 선택
-
-remix 확장팩은 solidity를 remix의 remote compiler를 사용해 컴파일한다. 컴파일시에 최신 버전의 compiler를 사용한다면 `F5`나 `실행> solidity: Compile Contract`로 컴파일 할 수 있으나, 낮은 버전의 solidity를 컴파일한다면, `solidity.compileUsingRemoteVersion`을 버전에 아래와 같이 변경하거나, `실행> solidity: Change workspace compiler version (remote)`로 변경해야 컴파일이 동작한다.
+- `vscode`> `ethereum remix`> `Run & Deploy`: use the remix IDE in vscode.
+- `vscode`> `Change workspace compiler version (Remote)`: select solidity version to clear compiler mismatch error.
+- install `npm install @openzeppelin/contracts` for zeppelin solidity reference.
+- `vscode`>`Open User Setting`> add `"solidity.packageDefaultDependenciesDirectory": "node_modules"` as follows.
 
 ```json
 {
-    "solidity.compileUsingRemoteVersion": "v0.4.26+commit.4563c3fc"
+  "solidity.compileUsingRemoteVersion": "v0.8.0+commit.c7dfd78e",
+  "solidity.defaultCompiler": "remote",
+  "solidity.packageDefaultDependenciesContractsDirectory": "",
+  "solidity.packageDefaultDependenciesDirectory": "node_modules"
 }
 ```
 
-만약, ethereum-remix 확장팩의 window에서 compile을 실행할 경우에는
-`Set compiler version`을 타겟 버전에 맞게 변경하고, `Compiler Compile contracts`를 클릭해 컴파일한다.
+## Solidity Output (Bytecode, ABI)
+
+### Bytecode
+
+- EVM executable bytecode
+- The bytecode is stored in the blockchain when a contract is deployed.
+
+### ABI (Application Binary Interface)
 
 
 # Running a Ethereum private network with geth with remix web IDE
@@ -82,9 +93,7 @@ geth --http --http.corsdomain https://remix.ethereum.org
 geth --http --http.corsdomain="https://remix.ethereum.org" --http.api web3,eth,debug,personal,net --vmdebug --datadir <path/to/local/folder/for/test/chain> --dev console
 ```
 
-## Starting remix
-
-### Local filesystem 접속
+## Starting remix with local filesystem
 
 remix에서 나의 파일시스템에 있는 solidity 파일에 접근하려면 생각보다 번거로운 과정을 요구한다.
 아래 사이트의 설명대로 remixd를 설치하고, 아래와 같이 IDE 주소를 지정하여 실행한다.
@@ -105,63 +114,49 @@ solidty의 compile은 online으로 동작가능하고, deploy시 private network
 
 앞서 geth 실행에서 `--http --http.corsdomain="https://remix.ethereum.org"` 옵션과 함께 실행했다면, 접속이 된다.
 
-## solidity
 
+## Terms
+
+- Transaction(Tx):
+- IPFS (InterPlanetary File System): file server based on blockchain?
+- `EVM (Ethereum Virtual Machine)`: Smart Contract를 blockchain내에서 실행하기 위한 런타임 환경
+- `Account`: blockchain의 Service Access Point
+- `EOA (Externally Owned Accounts)`: 외부에서 PKI (공개키 기반 암호 알고리즘)로 만들어진 계정
+  - `Public key`: Account Address 생성 및 Transaction 검증에 사용
+  - `Private key`: Transaction 서명에 사용하며, miner에 의해 Ethereum network에서 실행전 검증
+  - `Account Component`: 지갑 (Wallet) 에는 키 값만 소유하고, Ether나 Token에 대한 정보는 모두 blockchain에 기록.
+    - `nonce`: 해당 account의 transaction 수
+    - `balance`: Ether 잔고
+    - `root`: 해당 account가 저장될 머클 매트리시아 트리의 루트노드?
+    - `codehash`: Smart Contract byte code hash value?
+  - `Account Wallet`: 키만 저장되며, 나머지 정보는 blockchain 내 존재
+- `CA (Contract Accounts)`: 컨트랙트 접근을 위해 컨트랙트 생성시 만들어진 계정, 주소 (생성한 사용자의 주소와 주소로부터 보내진 Transaction의 수, "Nonce"에 기반)
+- `Account Address`: EOA의 공개키를 keccak-256로 해싱후 뒤 20 bytes (160 bits)를 16진수로 표현한 byte string
+- `Byte Code`: EVM code
+- `Parity`: Rust로 구현한 Ethereum client
+- `Geth`: Ethereum Foundation의 공식 Ethereum client
+- `Web3`와 `Truffle`: Web API for Ethereum
+- `Ganache`, `ganache-cli`: 테스트용 local Ethereum network
+- `Metamask`: Ethereum Wallet application
+
+### User Transaction (Transaction)
+
+- EOA's private key로 서명된 message; 작업단위
+- ECDSA (Ellictic Curve Digital Signature Algorithm)로 서명
+- 구성요소
+  - nonce: 발신자의 transaction 갯수
+  - price: transaction 수행 수수료 (fee); unit: wei
+  - gaslimit: 사용할 수 있는 gas 최대값
+  - recipient: 수신자 주소
+  - amount: 전송할 ether 량; unit: wei
+  - payload: optional field; smart contract 호출일 경우 필요한 매개변수
+  - v,r,s: ?
+
+
+```bash
+#!/bin/bash
+
+docker run -v $PWD/solidity:/solidity ethereum/solc:0.4.24 -o /solidity/output --abi --bin /solidity/$1
+# docker run --rm -v $(pwd):/root ethereum/solc:0.4.24 --abi /root/Store.sol -o /root/build
+abigen --bin=$PWD/solidity/output/Store.bin --abi=$PWD/solidity/output/Store.abi --pkg=store --out=store.go
 ```
-```
-
-### Pragma solidity ^0.0.0;
-
-solidity 버전을 기술하여 compile에 참조한다.
-
-### Contract
-
-C++, Java의 class와 유사하게 내부에 변수와 함수를 갖는다.
-
-### Constructor
-
-Contract가 생성될 때 한번 호출되는 초기화 함수로 contract와 같은 이름으로 함수를 선언한다.
-
-### Variable Types
-
-
-### Visibility
-
-- external: contract 외부에 공개, 외부 접근 사용 인터페이스
-- public: contract 외부에 공개, getter() 자동생성, internal, external에서 접근 ok
-- internal: contract 내부에서만 사용, 내부 함수 (protected와 비슷)
-- private: contract 내부에서만 사용, 상속 X
-
-### Addtional options
-
-- constant: 상태 변경 없을 경우, gas 소모 x
-- view: readonly, 소모 gas 없음
-- payable: 다른 EOA, CA에서 ETH 송금받길 원할 때
-
-#### view function
-view function은 contract의 state를 변경하지 않을 경우 선언할 수 있다.
-
-```solidity
-pragma solidity ^0.5.0;
-
-contract Test {
-   function getResult() public view returns(uint product, uint sum){
-      uint a = 1; // local variable
-      uint b = 2;
-      product = a * b;
-      sum = a + b; 
-   }
-}
-```
-
-contract의 state는 일반적으로 다음과 같은 상황에서 변경된다.
-
-- Modifying state variables.
-- Emitting events.
-- Creating other contracts.
-- Using selfdestruct.
-- Sending Ether via calls.
-- Calling any function which is not marked view or pure.
-- Using low-level calls.
-- Using inline assembly containing certain opcodes.
-
