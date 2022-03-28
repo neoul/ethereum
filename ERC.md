@@ -58,7 +58,7 @@ function supportsInterface(bytes4 interfaceID) external view returns (bool);
 - ERC-165의 역할도 함
 - Smart contract나 regular account가 제공하고 있는 인터페이스를 등록하는 등기소 (Registry)
 - 고정된 등기소 주소(Registry Contract Address) 제공: `0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24`
-- raw transaction data를 제공하므로 어느 chain이건 위의 Registry Contract Address에 Registry Contract가 배포되어야 함
+- raw transaction data를 제공하므로 어느 chain이건 위의 Registry Contract Address에 Registry Contract를 배포해 registry 서비스를 해줄 수 있음.
 
 This standard defines a registry where smart contracts and regular accounts can publish which functionality they implement—either directly or through a proxy contract.
 Anyone can query this registry to ask if a specific address implements a given interface and which smart contract handles its implementation.
@@ -94,6 +94,62 @@ This standard tries to improve upon the widely used ERC-20 token standard. The m
 
 An operator is an address which is allowed to send and burn tokens on behalf of some holder.
 
+
+## EIP 1155 (Ethereum Improvement Proposals)
+
+> 📢 **Key features**: `Multi token`, `Batch operation`, `operator(agent contract)` and `safety call`
+
+- = `IERC-1155`
+- **Multi token**: ERC-20 (ERC-777) + ERC-721; A standard interface for contracts that manage multiple token types. A single deployed contract may include any combination of fungible tokens, non-fungible tokens or other configurations.
+- **Batch operation**: 다수의 token을 하나의 transaction으로 처리
+- **operator**: from의 token 송수신을 대신하는 contract 지정
+- **Safety call**: 엉뚱한 contract의 token 송신을 막기위해 operator contract를 지정해야 동작; operator contract는 `ERC1155TokenReceiver` 인터페이스를 반드시 구현해야 함.
+- **URI**: The URI MUST point to a JSON file that conforms to the "ERC-1155 Metadata URI JSON Schema".
+
+```solidity
+interface ERC1155 {
+    event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value);
+    event TransferBatch(
+        address indexed operator,
+        address indexed from,
+        address indexed to,
+        uint256[] ids,
+        uint256[] values
+    );
+    event ApprovalForAll(address indexed account, address indexed operator, bool approved);
+    event URI(string value, uint256 indexed id);
+
+    function balanceOf(address account, uint256 id) external view returns (uint256);
+    function balanceOfBatch(address[] calldata accounts, uint256[] calldata ids)
+    function setApprovalForAll(address operator, bool approved) external;
+    function isApprovedForAll(address account, address operator) external view returns (bool);
+    function safeTransferFrom(address from,
+            address to,
+            uint256 id,
+            uint256 amount,
+            bytes calldata data
+        ) external;
+    function safeBatchTransferFrom(address from,
+            address to,
+            uint256[] calldata ids,
+            uint256[] calldata amounts,
+            bytes calldata data
+        ) external;
+}
+
+// Smart contracts MUST implement all of the functions in the ERC1155TokenReceiver interface to accept transfers. See “Safe Transfer Rules” for further detail.
+interface ERC1155TokenReceiver {
+    function onERC1155Received(address _operator, address _from, uint256 _id, uint256 _value, bytes calldata _data) external returns(bytes4);
+    function onERC1155BatchReceived(address _operator, address _from, uint256[] calldata _ids, uint256[] calldata _values, bytes calldata _data) external returns(bytes4);
+}
+```
+
+### ERC1155TokenReceiver interface
+
+- `ERC1155TokenReceiver`를 구현한 contract만이 ERC-1155 token을 수신할 수 있는 contract가 될 수 있다.
+- 해당 contract가 수신한 token을 거래할 수 있는 인터페이스를 가졌다는 의미
+- `onERC1155Received`, `onERC1155BatchReceived` 함수는 `safeTransferFrom`, `safeBatchTransferFrom` 두 함수의 selector를 각 각 반환하여, 두 함수가 contract에 구현되어 있음을 알림.
+- 따라서 `safeTransferFrom`, `safeBatchTransferFrom`를 구현하지 않은 contract는 ERC1155 token 거래에 참여할 수 없음.
 
 
 ## ERC-20, ERC-1155, ERC-223, ERC-721 – 차이점은 무엇인가요?

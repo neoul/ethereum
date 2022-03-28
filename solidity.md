@@ -56,22 +56,50 @@ function name(<PARAMETER TYPES>)
 ```
 
 ### Function attributes
-❗EOA (External Owned Account; User Account)
 
-- **external**: EOA만 호출 가능, 데이터가 클 때 유리 (CallData의 메모리 복사 없음)
-- **public**: EOA, contract가 호출 가능, CallData의 메모리 복사로 비용증가
+
+- **external**: EOA만 호출 가능, contract 내에서 호출 X, 단 `this.f()`로 호출 가능, 데이터가 클 때 유리 (calldata의 메모리 복사 없음)
+- **public**: EOA, contract가 호출 가능, calldata의 메모리 복사로 비용증가
 - **internal**: 해당 contract 또는 자식 contract에서 호출 가능
 - **private**: 해당 contract 내부에서만 사용
 - **view**: state 읽기 (o), state 쓰기 (x)
 - **pure**: state 읽기 (x), state 쓰기 (x)
 - **constant**:
 - **payable**: Possible to send ether with the function
-- **virtual**, **override**: virtual interface를 보다 명시적으로 지시하기 위해 사용; virtual interface는 반드시 override로 구현되어야 함.
-- 
+- **virtual**: A function that allows an inheriting contract to override its behavior will be marked at `virtual`.
+- **override**: The function that overrides that base function should be marked as `override`.
+
+> - ❗ EOA (External Owned Account; User Account)
+> - [❗ Solidity override vs. virtual functions](https://medium.com/upstate-interactive/solidity-override-vs-virtual-functions-c0a5dfb83aaf)
+
 
 ### Function modifier
 
 python decorator와 유사, ether 전송시 payable modifier로 선언되어야 한다.
+
+### Interface ID? Function Selector?
+
+
+- ❗ https://nhancv.medium.com/solidity-get-interface-id-and-erc165-190f0e2e3a9
+- ❗ https://solidity-by-example.org/function-selector/
+
+To get interface id, use
+
+```solidity
+// 1.
+type(_func).interfaceId
+
+// 2.
+bytes4(keccak256(bytes(_func)))
+```
+
+Remember interfaceId = xor of all selectors (methods) name and param type, don't care to return type
+
+
+### Contract Indicator
+
+`super`: parent contract
+`this`: this contract
 
 ### Error handling functions
 
@@ -80,6 +108,11 @@ python decorator와 유사, ether 전송시 payable modifier로 선언되어야 
 - **require(bool condition, string memory message)** − In case condition is not met, this method call reverts to original state. - This method is to be used for errors in inputs or external components. It provides an option to provide a custom message.
 - **revert()** − This method aborts the execution and revert any changes done to the state.
 - **revert(string memory reason)** − This method aborts the execution and revert any changes done to the state. It provides an option to provide a custom message.
+
+```solidity
+require(caller == _owner, "failure message");
+revert("failure message")
+```
 
 ### Cryptographic functions
 
@@ -92,30 +125,18 @@ python decorator와 유사, ether 전송시 payable modifier로 선언되어야 
 
 #### Sending or receiving Ether
 
-```solidity
-address to
-to.transfer(ETH)
-to.send(ETH)
-```
-
-- **transfer(ETH)** (2300 gas, throws error): no longer recommended for sending Ether?
-- **send(ETH)** (2300 gas, returns bool):
+- **to.transfer(ETH)** (2300 gas, throws error): `to`에게 송금
+- **to.send(ETH)** (2300 gas, returns bool): `to`에게 송금
 - **call** (forward all gas or set gas, returns bool)
 - **receive() external payable**: contract가 Ether를 송금 받을 경우 사용됨 단, msg.data is empty, otherwise fallback() is called.
 - **fallback() external payable**: contract가 Ether를 송금 받을 경우 
-
 - **fallback() external payable**: executed if a target function doesn't exist.
 - **constructor()**: Contract가 생성될 때 한번 호출되는 초기화 함수
   - constructor argument는 EVM code deploy시 반드시 포함되어야 함
   - 낮은 버전에서 contract명과 동일하게 이름 지정해야 함
   - public 꼭 선언?
-- **require(COND, MESSAGE)**: 입력 condition이 false일 경우 contract 중단, state 복구
-- **revert(MESSAGE)**: contract 중단, state 복구
 
-```solidity
-require(caller == _owner, "failure message");
-revert("failure message")
-```
+
 
 ### Calling another contract
 
@@ -191,19 +212,6 @@ library Address {
 }
 ```
 
-ERC-20 is a standard or guideline for creating new tokens. The standard defines six mandatory functions that a smart contract should implement and three optional ones.
-
-To start you can give your token a name, a symbol, and mention how dividable your token is, by specifying the decimals. ERC specifies a set of mandatory functions, which are a bit more complex and listed below:
-
-totalSupply: A method that defines the total supply of your tokens, When this limit is reached the smart contract will refuse to create new tokens.
-balanceOf: A method that returns the number of tokens a wallet address has.
-transfer: A method that takes a certain amount of tokens from the total supply and gives it to a user.
-transferFrom: Another type of transfer method which is used to transfer tokens between users.
-approve: This method verifies whether a smart contract is allowed to allocate a certain amount of tokens to a user, considering the total supply.
-allowance: This method is exactly the same as the approved method except that it checks if one user has enough balance to send a certain amount of tokens to another.
-
-If you know something about Object Oriented programming you can compare ERC-20 to an Interface. If you want your token to be an ERC-20 token, you have to implement the ERC-20 interface and that forces you to implement these 6 methods. 
-
 ## Unit in use
 
 ```
@@ -218,3 +226,11 @@ assert(1 ether == 1e18);
 1 days == 24 hours
 1 weeks == 7 days
 ```
+
+## Data Locations - Storage, Memory and Calldata
+
+It Explicitly specifies the location of the data on the function declaration.
+
+- **storage** - variable is a state variable (store on blockchain)
+- **memory** - variable is in memory and it exists while a function is being called
+- **calldata** - special data location that contains function arguments

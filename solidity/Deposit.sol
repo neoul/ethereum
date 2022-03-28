@@ -18,7 +18,7 @@ contract Deposit {
         manager = msg.sender;
     }
 
-    // 인출자 지정하여 예치
+    // 인출자 지정하여 예치, account가 EOA
     function deposit(address withdrawer) public payable {
         sendto[msg.sender] = withdrawer;
         // overflow 처리 필요?
